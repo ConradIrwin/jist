@@ -11,10 +11,22 @@ module Jist
 
   # A list of clipboard commands with copy and paste support.
   CLIPBOARD_COMMANDS = {
-    'xclip'   => 'xclip -o',
-    'xsel'    => 'xsel -o',
-    'pbcopy'  => 'pbpaste',
-    'putclip' => 'getclip'
+    'xclip'   => {
+      :copy => 'xclip -sel clip',
+      :paste => 'xclip -sel clip -o'
+      },
+    'xsel'    => {
+      :copy => 'xsel',
+      :paste => 'xsel -o'
+      },
+    'pbcopy'  => {
+      :copy => 'pbcopy',
+      :paste => 'pbpaste'
+      },
+    'putclip' => {
+      :copy => 'putclip',
+      :paste => 'getclip'
+      },
   }
 
   GITHUB_API_URL = URI("https://api.github.com/")
@@ -271,7 +283,7 @@ module Jist
 Could not find copy command, tried:
     #{CLIPBOARD_COMMANDS.values.join(' || ')}
     EOT
-    action == :copy ? command : CLIPBOARD_COMMANDS[command]
+    CLIPBOARD_COMMANDS[command][action]
   end
 
   # Open a URL in a browser.
