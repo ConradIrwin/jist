@@ -23,8 +23,6 @@ module Jist
   GITHUB_BASE_PATH = ""
   GHE_BASE_PATH    = "/api/v3"
 
-  GHE_ENV_NAME     = "GHE_URL"
-
   # Exception tag for errors raised while gisting.
   module Error;
     def self.exception(*args)
@@ -164,7 +162,7 @@ module Jist
       File.open(auth_token_file, 'w') do |f|
         f.write JSON.parse(response.body)['token']
       end
-      puts "Success! #{ENV[GHE_ENV_NAME] || "https://github.com/"}settings/applications"
+      puts "Success! https://#{ENV["GITHUB_HOST"] || "github.com"}/settings/applications"
     else
       raise "Got #{response.class} from gist: #{response.body}"
     end
@@ -315,17 +313,17 @@ Could not find copy command, tried:
 
   # Get the API base path
   def base_path
-    ENV.key?(GHE_ENV_NAME) ? GHE_BASE_PATH : GITHUB_BASE_PATH
+    ENV.key?("GITHUB_HOST") ? GHE_BASE_PATH : GITHUB_BASE_PATH
   end
 
   # Get the API URL
   def api_url
-    ENV.key?(GHE_ENV_NAME) ? URI(ENV[GHE_ENV_NAME]) : GITHUB_API_URL
+    ENV.key?("GITHUB_HOST") ? URI("https://#{ENV["GITHUB_HOST"]}/") : GITHUB_API_URL
   end
 
   def auth_token_file
-    if ENV.key?(GHE_ENV_NAME)
-      File.expand_path "~/.jist.#{ENV[GHE_ENV_NAME].gsub(/[^a-z.]/, '')}"
+    if ENV.key?("GITHUB_HOST")
+      File.expand_path "~/.jist.#{ENV["GITHUB_HOST"].gsub(/[^a-z.]/, '')}"
     else
       File.expand_path "~/.jist"
     end
