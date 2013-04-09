@@ -17,8 +17,13 @@ module Jist
     'putclip' => 'getclip'
   }
 
-  GITHUB_API_URL = URI("https://api.github.com/")
-  GIT_IO_URL     = URI("http://git.io")
+  GITHUB_API_URL   = URI("https://api.github.com/")
+  GIT_IO_URL       = URI("http://git.io")
+
+  GITHUB_BASE_PATH = ""
+  GHE_BASE_PATH    = "/api/v3"
+
+  GHE_ENV_NAME     = "GHE_URL"
 
   # Exception tag for errors raised while gisting.
   module Error;
@@ -81,7 +86,7 @@ module Jist
       access_token = (options[:access_token] || File.read(File.expand_path("~/.jist")) rescue nil)
     end
 
-    url = "/gists"
+    url = "#{base_path}/gists"
     url << "/" << CGI.escape(existing_gist) if existing_gist.to_s != ''
     url << "?access_token=" << CGI.escape(access_token) if access_token.to_s != ''
 
@@ -92,7 +97,7 @@ module Jist
     retried = false
 
     begin
-      response = http(GITHUB_API_URL, request)
+      response = http(api_url, request)
       if Net::HTTPSuccess === response
         on_success(response.body, options)
       else
@@ -144,7 +149,7 @@ module Jist
     end
     puts ""
 
-    request = Net::HTTP::Post.new("/authorizations")
+    request = Net::HTTP::Post.new("#{base_path}/authorizations")
     request.body = JSON.dump({
       :scopes => [:gist],
       :note => "The jist gem",
@@ -153,13 +158,13 @@ module Jist
     request.content_type = 'application/json'
     request.basic_auth(username, password)
 
-    response = http(GITHUB_API_URL, request)
+    response = http(api_url, request)
 
     if Net::HTTPCreated === response
       File.open(File.expand_path("~/.jist"), 'w') do |f|
         f.write JSON.parse(response.body)['token']
       end
-      puts "Success! https://github.com/settings/applications"
+      puts "Success! #{ENV[GHE_ENV_NAME] || "https://github.com/"}settings/applications"
     else
       raise "Got #{response.class} from gist: #{response.body}"
     end
@@ -315,5 +320,15 @@ Could not find copy command, tried:
               end
 
     `#{command} #{url}`
+  end
+
+  # Get the API base path
+  def base_path
+    ENV.key?(GHE_ENV_NAME) ? GHE_BASE_PATH : GITHUB_BASE_PATH
+  end
+
+  # Get the API URL
+  def api_url
+    ENV.key?(GHE_ENV_NAME) ? URI(ENV[GHE_ENV_NAME]) : GITHUB_API_URL
   end
 end
