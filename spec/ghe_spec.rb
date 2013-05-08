@@ -35,7 +35,7 @@ describe '...' do
       # stdin emulation
       $stdin = StringIO.new "#{MOCK_USER}\n#{MOCK_PASSWORD}\n"
 
-      # intercept for updating ~/.jist
+      # intercept for updating $XDG_CONFIG_HOME/jist
       File.stub(:open)
     end
 

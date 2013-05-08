@@ -55,7 +55,7 @@ module Jist
   # @option options [String] :description  the description
   # @option options [Boolean] :public  (false) is this gist public
   # @option options [Boolean] :anonymous  (false) is this gist anonymous
-  # @option options [String] :access_token  (`File.read("~/.jist")`) The OAuth2 access token.
+  # @option options [String] :access_token  ($XDG_CONFIG_HOME/jist) The OAuth2 access token.
   # @option options [String] :update  the URL or id of a gist to update
   # @option options [Boolean] :copy  (false) Copy resulting URL to clipboard, if successful.
   # @option options [Boolean] :open  (false) Open the resulting URL in a browser.
@@ -134,7 +134,7 @@ module Jist
   # Log the user into jist.
   #
   # This method asks the user for a username and password, and tries to obtain
-  # and OAuth2 access token, which is then stored in ~/.jist
+  # and OAuth2 access token, which is then stored in $XDG_CONFIG_HOME/jist
   #
   # @raise [Jist::Error]  if something went wrong
   # @see http://developer.github.com/v3/oauth/
@@ -337,10 +337,12 @@ Could not find copy command, tried:
   end
 
   def auth_token_file
+    config_file = ENV.fetch('XDG_CONFIG_HOME', '~/.config') + '/jist'
+
     if ENV.key?(URL_ENV_NAME)
-      File.expand_path "~/.jist.#{ENV[URL_ENV_NAME].gsub(/[^a-z.]/, '')}"
+      File.expand_path "#{config_file}.#{ENV[URL_ENV_NAME].gsub(/[^a-z.]/, '')}"
     else
-      File.expand_path "~/.jist"
+      File.expand_path config_file
     end
   end
 end
